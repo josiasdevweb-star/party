@@ -52,21 +52,21 @@
         };
     });
 
-    var STORAGE_KEY = "poseify_localisation_v4";
+    var STORAGE_KEY = "poseify_localisation_v5";
 
     function getLocalisation() {
         try {
             var raw = window.localStorage.getItem(STORAGE_KEY);
             var data = raw ? JSON.parse(raw) : null;
-            return data && data.pays && data.ville ? data : null;
+            return data && data.prenom && data.pays && data.ville ? data : null;
         } catch (e) {
             return null;
         }
     }
 
-    function setLocalisation(pays, ville) {
+    function setLocalisation(pays, ville, prenom) {
         try {
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ pays: pays, ville: ville }));
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ prenom: prenom, pays: pays, ville: ville, at: Date.now() }));
             return true;
         } catch (e) {
             return false;

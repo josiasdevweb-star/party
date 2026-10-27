@@ -7,6 +7,7 @@
     var client = null;
     var timer = null;
     var visitors = [];
+    var guests = [];
 
     var DEVICES = [
         { key: "mobile", label: "Téléphone", icon: "fa-mobile-screen", cls: "c-mobile" },
@@ -162,7 +163,72 @@
         box.appendChild(table);
     }
 
-    function renderAll(a, c) {
+    function renderGuests(g) {
+        var box = $("g-table");
+        clear(box);
+        if (g) guests = g.rows;
+        var summary = $("g-summary");
+        if (g === null) {
+            summary.textContent = "";
+            box.appendChild(el("p", "adm-empty mb-0", "La liste des invités n'est pas encore disponible : la table n'est pas créée dans Supabase (voir les étapes d'installation)."));
+            return;
+        }
+        if (g) {
+            summary.textContent = nf(g.stats.total) + " invité(s) · " + nf(g.stats.newToday) + " aujourd'hui · " + nf(g.stats.new7d) + " sur 7 jours" +
+                (g.stats.countries.length ? " · pays le plus représenté : " + g.stats.countries[0].name + " (" + nf(g.stats.countries[0].count) + ")" : "");
+        }
+        var q = $("g-search").value.trim().toLowerCase();
+        var list = guests.filter(function (r) {
+            if (!q) return true;
+            return [r.first_name, r.city, r.country].join(" ").toLowerCase().indexOf(q) >= 0;
+        }).slice(0, 100);
+        if (!list.length) { box.appendChild(el("p", "adm-empty mb-0", q ? "Aucun invité ne correspond à cette recherche." : "Aucun invité inscrit pour le moment.")); return; }
+
+        var table = el("table", "adm-table");
+        var head = el("thead");
+        var hr = el("tr");
+        ["Date", "Prénom", "Ville", "Pays", "Profil", "Action"].forEach(function (h) { hr.appendChild(el("th", null, h)); });
+        head.appendChild(hr);
+        table.appendChild(head);
+        var body = el("tbody");
+        list.forEach(function (r) {
+            var tr = el("tr");
+            [["Date", fmtDate(r.created_at)], ["Prénom", r.first_name], ["Ville", r.city], ["Pays", r.country], ["Profil", r.model_id ? "n° " + r.model_id : "–"]].forEach(function (c) {
+                var td = el("td", null, c[1]);
+                td.setAttribute("data-label", c[0]);
+                tr.appendChild(td);
+            });
+            var act = el("td");
+            act.setAttribute("data-label", "Action");
+            var btn = el("button", "btn btn-outline-primary btn-sm px-3", "Faire repasser");
+            btn.type = "button";
+            btn.addEventListener("click", function () { resetGuest(r, btn); });
+            act.appendChild(btn);
+            tr.appendChild(act);
+            body.appendChild(tr);
+        });
+        table.appendChild(body);
+        box.appendChild(table);
+    }
+
+    function resetGuest(r, btn) {
+        if (!client) return;
+        var ok = window.confirm("Supprimer la soumission de " + r.first_name + " (" + r.city + ", " + r.country + ") et lui permettre de repasser le formulaire ?");
+        if (!ok) return;
+        btn.disabled = true;
+        client.rpc("admin_reset_guest", { p_id: r.id }).then(function (res) {
+            if (res.error) throw res.error;
+            return load().then(function () {
+                message("info", "Soumission de " + r.first_name + " supprimée. Cette personne repassera par le formulaire à sa prochaine visite d'un profil.");
+            });
+        }).catch(function () {
+            btn.disabled = false;
+            message("err", "Suppression impossible. Vérifiez que la mise à jour SQL des invités a bien été exécutée, puis réessayez.");
+        });
+    }
+
+    function renderAll(a, c, g) {
+        renderGuests(g);
         visitors = a.rows;
         var s = a.stats;
         $("k-unique").textContent = nf(s.uniqueDevices);
@@ -184,9 +250,9 @@
     function load() {
         if (!client) return Promise.resolve();
         message("info", "Chargement des données…");
-        return Promise.all([S.fetchAnalyticsData(client), S.fetchClicksData(client)]).then(function (res) {
+        return Promise.all([S.fetchAnalyticsData(client), S.fetchClicksData(client), S.fetchGuestsData(client).catch(function () { return null; })]).then(function (res) {
             message("", "");
-            renderAll(res[0], res[1]);
+            renderAll(res[0], res[1], res[2]);
         }).catch(function () {
             message("err", "Impossible de charger les statistiques. Vérifiez votre connexion puis cliquez sur « Actualiser ».");
         });
@@ -283,6 +349,21 @@
     $("btn-refresh").addEventListener("click", function () { load(); });
 
     $("v-search").addEventListener("input", renderVisitors);
+
+    $("g-search").addEventListener("input", function () { renderGuests(undefined); });
+
+    $("g-csv").addEventListener("click", function () {
+        if (!guests.length) { message("info", "Aucun invité à exporter pour le moment."); return; }
+        var blob = new Blob([S.guestsToCsv(guests)], { type: "text/csv;charset=utf-8" });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement("a");
+        link.href = url;
+        link.download = "invites-" + new Date().toISOString().slice(0, 10) + ".csv";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    });
 
     $("btn-csv").addEventListener("click", function () {
         if (!visitors.length) { message("info", "Aucune donnée à exporter pour le moment."); return; }

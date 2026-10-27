@@ -87,6 +87,37 @@
         };
     }
 
+    function computeGuests(rows, now) {
+        now = now || Date.now();
+        var today = startOfToday(now);
+        var week = now - 7 * 24 * 3600 * 1000;
+        var countries = {};
+        var newToday = 0, new7d = 0;
+        rows.forEach(function (r) {
+            var t = time(r.created_at);
+            if (t >= today) newToday += 1;
+            if (t >= week) new7d += 1;
+            var c = (r.country && String(r.country).trim()) || "Inconnu";
+            countries[c] = (countries[c] || 0) + 1;
+        });
+        return {
+            total: rows.length,
+            newToday: newToday,
+            new7d: new7d,
+            countries: Object.keys(countries).map(function (k) { return { name: k, count: countries[k] }; })
+                .sort(function (a, b) { return b.count - a.count; })
+        };
+    }
+
+    function fetchGuestsData(client) {
+        return client.from("guest_registrations").select("*").order("created_at", { ascending: false }).limit(LIMIT)
+            .then(function (res) {
+                if (res.error) throw res.error;
+                var rows = res.data || [];
+                return { rows: rows, stats: computeGuests(rows) };
+            });
+    }
+
     function fetchAnalyticsData(client) {
         return client.from("analytics_visitors").select("*").order("created_at", { ascending: false }).limit(LIMIT)
             .then(function (res) {
@@ -126,10 +157,22 @@
         return "﻿" + lines.join("\r\n");
     }
 
+    function guestsToCsv(rows) {
+        var cols = [["created_at", "Date"], ["first_name", "Prénom"], ["city", "Ville"], ["country", "Pays"], ["model_id", "Profil consulté"]];
+        var lines = [cols.map(function (c) { return csvCell(c[1]); }).join(",")];
+        rows.forEach(function (r) {
+            lines.push(cols.map(function (c) { return csvCell(r[c[0]]); }).join(","));
+        });
+        return "\ufeff" + lines.join("\r\n");
+    }
+
     var api = {
         LIMIT: LIMIT,
         computeAnalytics: computeAnalytics,
         computeClicks: computeClicks,
+        computeGuests: computeGuests,
+        fetchGuestsData: fetchGuestsData,
+        guestsToCsv: guestsToCsv,
         fetchAnalyticsData: fetchAnalyticsData,
         fetchClicksData: fetchClicksData,
         visitorsToCsv: visitorsToCsv

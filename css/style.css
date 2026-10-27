@@ -827,3 +827,26 @@ video.profil-media {
     max-height: 100%;
     border-radius: 12px;
 }
+
+
+/*** Accueil personnalisé de l'invité ***/
+.profil-welcome {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 10px 20px;
+    color: var(--bs-white);
+    background: rgba(228, 23, 121, .18);
+    border: 1px solid var(--bs-primary);
+    border-radius: 50px;
+    font-weight: 600;
+}
+
+.profil-welcome i {
+    color: #F5B83F;
+}
+
+.profil-welcome + .profil-badge {
+    display: table;
+}

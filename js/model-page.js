@@ -30,6 +30,7 @@
                     '<div class="col-lg-5 wow fadeInLeft" data-wow-delay="0.1s"><div class="profil-portrait">' +
                       '<img src="' + e(m.vignette) + '" alt="' + e(nomComplet) + '" loading="lazy" decoding="async"></div></div>' +
                     '<div class="col-lg-7 wow fadeInRight" data-wow-delay="0.3s">' +
+                      '<div class="profil-welcome"><i class="fa fa-crown"></i>Bienvenue ' + e(loc.prenom) + ', vous bénéficiez d\'un accès privilégié</div>' +
                       '<span class="profil-badge">' + e(m.categorie) + '</span>' +
                       '<h1 class="profil-nom">' + e(m.prenom) + '</h1>' +
                       '<div class="profil-nom-famille">' + e(m.nom) + '</div>' +
@@ -60,6 +61,22 @@
                   '<div class="text-center mt-5"><a class="btn btn-outline-primary border-2 px-5 py-3" href="index.html">Retour aux mannequins</a></div>' +
                 '</div></section>' +
                 '<div class="profil-bar"><a class="btn btn-primary py-3" data-track="reserver_modele" href="' + e(m.reservation) + '"><i class="fa fa-heart me-2"></i>Réserver ' + e(m.prenom) + '</a></div>';
+
+            // Soumission supprimée par l'admin : le visiteur repasse par le formulaire.
+            // On ne réagit qu'à une réponse « false » claire, et pas juste après la saisie (délai d'enregistrement).
+            (function () {
+                var sb = window.PoseifySupabase, an = window.PoseifyAnalytics;
+                if (!sb || !an || (loc.at && Date.now() - loc.at < 120000)) return;
+                sb.get().then(function (client) {
+                    if (!client) return;
+                    return client.rpc("guest_exists", { p_visitor_id: an.getOrCreateVisitorId() });
+                }).then(function (res) {
+                    if (res && !res.error && res.data === false) {
+                        P.clearLocalisation();
+                        window.location.replace("localisation.html?id=" + m.id);
+                    }
+                }).catch(function () { /* silencieux */ });
+            })();
 
             // Photo manquante : on affiche la vignette à la place
             document.getElementById("profil").addEventListener("error", function (ev) {
