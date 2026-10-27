@@ -7,7 +7,7 @@
             if (!loc) { window.location.replace("localisation.html?id=" + m.id); return; }
             var e = P.escapeHtml;
             var nomComplet = m.prenom + " " + m.nom;
-            document.title = "Poseify - " + nomComplet;
+            document.title = "Isabella - " + nomComplet;
             document.getElementById("page-titre").textContent = m.prenom;
             document.getElementById("page-crumb").textContent = m.prenom;
 

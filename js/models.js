@@ -17,7 +17,7 @@
         "Mannequinat professionnel"
     ];
 
-    var DESCRIPTION = "Mannequin professionnelle de l'agence Poseify. Présentation à compléter : parcours, style, " +
+    var DESCRIPTION = "Mannequin professionnelle de l'agence Isabella. Présentation à compléter : parcours, style, " +
         "expériences et points forts.";
 
     var IDENTITES = [
