@@ -407,7 +407,7 @@
 	animation: footerAnimatedBg 50s linear infinite;
 }
 
-/*** Profil mannequin ***/
+/*** Profil ***/
 .profil-media {
     width: 100%;
     background: var(--bs-secondary);
@@ -424,7 +424,7 @@ video.profil-media {
 }
 
 
-/*** Message au survol des cartes mannequins ***/
+/*** Message au survol des cartes ***/
 .team-item .team-body .team-hover {
     position: absolute;
     top: 0;
@@ -460,7 +460,7 @@ video.profil-media {
 }
 
 
-/*** Cartes mannequins ***/
+/*** Cartes des filles ***/
 .model-card {
     position: relative;
     display: block;
@@ -596,7 +596,7 @@ video.profil-media {
 }
 
 
-/*** Profil mannequin (version premium) ***/
+/*** Profil (version premium) ***/
 .profil-hero {
     position: relative;
     overflow: hidden;
@@ -849,4 +849,20 @@ video.profil-media {
 
 .profil-welcome + .profil-badge {
     display: table;
+}
+
+
+/*** Aperçu au toucher : même effet que le survol, activé par le défilement ***/
+.model-card.is-active {
+    transform: translateY(-6px);
+    border-color: var(--bs-primary);
+    box-shadow: 0 18px 45px rgba(228, 23, 121, .35);
+}
+
+.model-card.is-active .model-card-img {
+    transform: scale(1.08);
+}
+
+.model-card.is-active .model-hover {
+    opacity: 1;
 }

@@ -1,23 +1,23 @@
 /*
- * Données des mannequins + rendu des cartes + mémorisation de la localisation du visiteur.
+ * Données des filles + rendu des cartes + mémorisation de la localisation du visiteur.
  *
- * Pour chaque mannequin (id 1 à 15) déposez vos fichiers ici :
+ * Pour chaque fille (id 1 à 15) déposez vos fichiers ici :
  *   - photos  : img/models/<id>/photo-1.jpg, photo-2.jpg, photo-3.jpg
  *   - vidéos  : videos/<id>/video-1.mp4, video-2.mp4
  * <id> est sur 2 chiffres : 01, 02 ... 15.
- * Le lien du bouton « Réserver » se règle dans le champ "reservation" de chaque mannequin.
+ * Le lien du bouton « Réserver » se règle dans le champ "reservation" de chaque fille.
  */
 (function () {
     "use strict";
 
     var CATEGORIES = [
         "Défilés de mode",
-        "Événements d'entreprise",
+        "Événements",
         "Shootings photo commerciaux",
-        "Mannequinat professionnel"
+        "Accompagnement professionnel"
     ];
 
-    var DESCRIPTION = "Mannequin professionnelle de l'agence Isabella. Présentation à compléter : parcours, style, " +
+    var DESCRIPTION = "Une des filles d'Isabella. Présentation à compléter : parcours, style, " +
         "expériences et points forts.";
 
     var IDENTITES = [
@@ -27,7 +27,7 @@
         ["Lefèvre", "Emma"], ["Garnier", "Zoé"], ["Roux", "Louise"]
     ];
 
-    // Message affiché au survol de la carte (modifiable pour chaque mannequin, dans l'ordre).
+    // Message affiché au survol de la carte (modifiable pour chaque fille, dans l'ordre).
     var ACCROCHES = [
         "Découvre-moi", "Miam ! Tu viens ?", "Viens me rencontrer", "Tu n'oseras pas résister",
         "Un petit coup d'œil ?", "Approche, je ne mords pas", "Curieux ? Clique !", "Je t'attendais",
@@ -97,7 +97,7 @@
             var nom = escapeHtml(m.prenom + " " + m.nom);
             return '' +
                 '<div class="col-xl-3 col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="' + delay + 's">' +
-                '<a class="model-card" data-track="carte_mannequin" href="' + href + '">' +
+                '<a class="model-card" data-track="carte_fille" href="' + href + '">' +
                 '<img class="model-card-img" src="' + m.vignette + '" alt="' + nom + '" loading="lazy" decoding="async" width="600" height="800">' +
                 '<span class="model-badge">' + escapeHtml(m.categorie) + '</span>' +
                 '<div class="model-hover"><i class="fa fa-heart"></i><span>' + escapeHtml(m.accroche) + '</span></div>' +
@@ -107,6 +107,30 @@
                 '</a>' +
                 '</div>';
         }).join("");
+    }
+
+    // Écrans tactiles (pas de survol) : la carte qui arrive au centre de l'écran affiche son message toute seule,
+    // et un doigt posé sur une carte l'active aussi, sans avoir à cliquer. Un clic ouvre le profil.
+    function enableTouchPreview(container) {
+        if (!window.matchMedia || !window.matchMedia("(hover: none)").matches || !("IntersectionObserver" in window)) return;
+        var current = null;
+        function activate(card) {
+            if (current === card) return;
+            if (current) current.classList.remove("is-active");
+            current = card;
+            if (card) card.classList.add("is-active");
+        }
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) {
+                if (en.isIntersecting) activate(en.target);
+                else if (current === en.target) activate(null);
+            });
+        }, { rootMargin: "-42% 0px -42% 0px", threshold: 0 });
+        Array.prototype.forEach.call(container.querySelectorAll(".model-card"), function (c) { io.observe(c); });
+        container.addEventListener("touchstart", function (e) {
+            var c = e.target.closest ? e.target.closest(".model-card") : null;
+            if (c) activate(c);
+        }, { passive: true });
     }
 
     window.Poseify = {
@@ -119,5 +143,5 @@
     };
 
     var grid = document.getElementById("models-grid");
-    if (grid) renderGrid(grid);
+    if (grid) { renderGrid(grid); enableTouchPreview(grid); }
 })();

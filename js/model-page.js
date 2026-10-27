@@ -30,7 +30,6 @@
                     '<div class="col-lg-5 wow fadeInLeft" data-wow-delay="0.1s"><div class="profil-portrait">' +
                       '<img src="' + e(m.vignette) + '" alt="' + e(nomComplet) + '" loading="lazy" decoding="async"></div></div>' +
                     '<div class="col-lg-7 wow fadeInRight" data-wow-delay="0.3s">' +
-                      '<div class="profil-welcome"><i class="fa fa-crown"></i>Bienvenue ' + e(loc.prenom) + '</div>' +
                       '<span class="profil-badge">' + e(m.categorie) + '</span>' +
                       '<h1 class="profil-nom">' + e(m.prenom) + '</h1>' +
                       '<div class="profil-nom-famille">' + e(m.nom) + '</div>' +
@@ -58,7 +57,7 @@
                     '<p>Ne la laissez pas filer. Réservez-la dès maintenant.</p>' +
                     '<a class="btn btn-primary btn-reserver" data-track="reserver_modele" href="' + e(m.reservation) + '"><i class="fa fa-heart me-2"></i>Réserver ' + e(m.prenom) + '</a>' +
                   '</div>' +
-                  '<div class="text-center mt-5"><a class="btn btn-outline-primary border-2 px-5 py-3" href="index.html">Retour aux mannequins</a></div>' +
+                  '<div class="text-center mt-5"><a class="btn btn-outline-primary border-2 px-5 py-3" href="index.html">Retour aux filles</a></div>' +
                 '</div></section>' +
                 '<div class="profil-bar"><a class="btn btn-primary py-3" data-track="reserver_modele" href="' + e(m.reservation) + '"><i class="fa fa-heart me-2"></i>Réserver ' + e(m.prenom) + '</a></div>';
 
