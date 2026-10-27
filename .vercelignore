@@ -1,0 +1,11 @@
+CLAUDE.md
+supabase
+.git
+.gitignore
+.vercelignore
+Poseify.jpg
+lib/*/links.php
+lib/owlcarousel/owl.carousel.js
+lib/easing/easing.js
+lib/wow/wow.js
+lib/animate/animate.css

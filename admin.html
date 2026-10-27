@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <title>Poseify - Administration</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta name="robots" content="noindex, nofollow">
+
+    <link href="img/favicon.svg" rel="icon" type="image/svg+xml">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;700&family=Work+Sans:wght@400;600&display=swap"
+        rel="stylesheet">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" rel="stylesheet" integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/admin.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="adm-wrap">
+        <div class="adm-top">
+            <h1><i class="fa-regular fa-face-smile me-2 text-primary"></i>Audience</h1>
+            <div class="adm-actions hidden" id="adm-actions">
+                <button type="button" class="btn btn-outline-primary border-2 btn-sm px-3" id="btn-refresh"><i class="fa fa-rotate me-1"></i>Actualiser</button>
+                <button type="button" class="btn btn-outline-primary border-2 btn-sm px-3" id="btn-csv"><i class="fa fa-download me-1"></i>Export CSV</button>
+                <button type="button" class="btn btn-primary btn-sm px-3" id="btn-logout"><i class="fa fa-right-from-bracket me-1"></i>Déconnexion</button>
+            </div>
+        </div>
+
+        <div id="adm-state"></div>
+
+        <!-- Connexion -->
+        <div class="adm-login hidden" id="adm-login">
+            <div class="adm-card">
+                <h2>Connexion</h2>
+                <form id="login-form" novalidate>
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control bg-secondary border-0" id="login-email" placeholder="E-mail" autocomplete="username" required>
+                        <label for="login-email">E-mail</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="password" class="form-control bg-secondary border-0" id="login-pass" placeholder="Mot de passe" autocomplete="current-password" required>
+                        <label for="login-pass">Mot de passe</label>
+                    </div>
+                    <button class="btn btn-primary w-100 py-3" type="submit" id="login-btn">Se connecter</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tableau de bord -->
+        <div class="hidden" id="adm-dash">
+            <p class="adm-empty mb-3" id="adm-updated"></p>
+
+            <div class="row g-3 mb-3">
+                <div class="col-6 col-md-3"><div class="adm-card adm-kpi"><div class="n" id="k-unique">–</div><div class="l">Appareils uniques</div></div></div>
+                <div class="col-6 col-md-3"><div class="adm-card adm-kpi"><div class="n" id="k-visits">–</div><div class="l">Visites totales</div></div></div>
+                <div class="col-6 col-md-3"><div class="adm-card adm-kpi"><div class="n" id="k-today">–</div><div class="l">Nouveaux aujourd'hui</div></div></div>
+                <div class="col-6 col-md-3"><div class="adm-card adm-kpi"><div class="n" id="k-week">–</div><div class="l">Nouveaux sur 7 jours</div></div></div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6"><div class="adm-card"><h2>Répartition par appareil</h2><div id="dev-split"></div></div></div>
+                <div class="col-md-6"><div class="adm-card"><h2>Visites par appareil</h2><div id="dev-visits"></div></div></div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6"><div class="adm-card"><h2>Systèmes</h2><div id="l-systems"></div></div></div>
+                <div class="col-md-6"><div class="adm-card"><h2>Navigateurs</h2><div id="l-browsers"></div></div></div>
+                <div class="col-md-6"><div class="adm-card"><h2>Sources</h2><div id="l-sources"></div></div></div>
+                <div class="col-md-6"><div class="adm-card"><h2>Campagnes</h2><div id="l-campaigns"></div></div></div>
+            </div>
+
+            <div class="adm-card mb-3"><h2>Clics sur les boutons</h2><div id="l-clicks"></div></div>
+
+            <div class="adm-card">
+                <h2>Derniers visiteurs</h2>
+                <input type="search" class="adm-search mb-3" id="v-search" placeholder="Rechercher (appareil, système, source, page…)">
+                <div id="v-table"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/supabase-config.js" defer></script>
+    <script src="js/supabase-client.js" defer></script>
+    <script src="js/analytics-admin-service.js" defer></script>
+    <script src="js/admin.js" defer></script>
+</body>
+
+</html>
