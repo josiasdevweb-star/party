@@ -30,7 +30,7 @@
                     '<div class="col-lg-5 wow fadeInLeft" data-wow-delay="0.1s"><div class="profil-portrait">' +
                       '<img src="' + e(m.vignette) + '" alt="' + e(nomComplet) + '" loading="lazy" decoding="async"></div></div>' +
                     '<div class="col-lg-7 wow fadeInRight" data-wow-delay="0.3s">' +
-                      '<div class="profil-welcome"><i class="fa fa-crown"></i>Bienvenue ' + e(loc.prenom) + ', vous bénéficiez d\'un accès privilégié</div>' +
+                      '<div class="profil-welcome"><i class="fa fa-crown"></i>Bienvenue ' + e(loc.prenom) + '</div>' +
                       '<span class="profil-badge">' + e(m.categorie) + '</span>' +
                       '<h1 class="profil-nom">' + e(m.prenom) + '</h1>' +
                       '<div class="profil-nom-famille">' + e(m.nom) + '</div>' +

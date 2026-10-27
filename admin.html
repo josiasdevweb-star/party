@@ -24,11 +24,31 @@
 <body>
     <div class="adm-wrap">
         <div class="adm-top">
-            <h1><i class="fa-regular fa-face-smile me-2 text-primary"></i>Audience</h1>
-            <div class="adm-actions hidden" id="adm-actions">
-                <button type="button" class="btn btn-outline-primary border-2 btn-sm px-3" id="btn-refresh"><i class="fa fa-rotate me-1"></i>Actualiser</button>
-                <button type="button" class="btn btn-outline-primary border-2 btn-sm px-3" id="btn-csv"><i class="fa fa-download me-1"></i>Export CSV</button>
-                <button type="button" class="btn btn-primary btn-sm px-3" id="btn-logout"><i class="fa fa-right-from-bracket me-1"></i>Déconnexion</button>
+            <div>
+                <h1><i class="fa-regular fa-face-smile me-2 text-primary"></i>Audience</h1>
+                <div class="adm-view-name hidden" id="adm-view-name"></div>
+            </div>
+
+            <!-- Menu hamburger (coin supérieur droit) -->
+            <div class="adm-menu hidden" id="adm-actions">
+                <button type="button" class="adm-burger" id="menu-btn" aria-label="Menu" aria-expanded="false" aria-controls="menu-panel">
+                    <i class="fa fa-bars"></i>
+                    <span class="adm-badge hidden" id="menu-badge">0</span>
+                </button>
+                <nav class="adm-panel hidden" id="menu-panel" aria-label="Sections">
+                    <button type="button" class="adm-item needs-admin" data-nav="apercu"><i class="fa fa-chart-pie"></i><span>Aperçu</span></button>
+                    <button type="button" class="adm-item needs-admin" data-nav="appareils"><i class="fa fa-mobile-screen"></i><span>Appareils</span></button>
+                    <button type="button" class="adm-item needs-admin" data-nav="sources"><i class="fa fa-share-nodes"></i><span>Sources</span></button>
+                    <button type="button" class="adm-item needs-admin" data-nav="clics"><i class="fa fa-hand-pointer"></i><span>Clics</span></button>
+                    <button type="button" class="adm-item needs-admin" data-nav="invites"><i class="fa fa-crown"></i><span>Invités</span><b class="adm-count" id="cnt-invites">0</b></button>
+                    <button type="button" class="adm-item needs-admin" data-nav="connexions"><i class="fa fa-bell"></i><span>Connexions</span><b class="adm-count" id="cnt-connexions">0</b></button>
+                    <div class="adm-sep needs-admin"></div>
+                    <button type="button" class="adm-item needs-admin" id="btn-refresh"><i class="fa fa-rotate"></i><span>Actualiser</span></button>
+                    <button type="button" class="adm-item needs-admin" id="btn-csv"><i class="fa fa-download"></i><span>Exporter les visiteurs</span></button>
+                    <button type="button" class="adm-item needs-admin" id="g-csv"><i class="fa fa-file-csv"></i><span>Exporter les invités</span></button>
+                    <div class="adm-sep needs-admin"></div>
+                    <button type="button" class="adm-item adm-logout" id="btn-logout"><i class="fa fa-right-from-bracket"></i><span>Déconnexion</span></button>
+                </nav>
             </div>
         </div>
 
@@ -52,46 +72,60 @@
             </div>
         </div>
 
-        <!-- Tableau de bord -->
+        <!-- Tableau de bord : une seule section visible à la fois, choisie dans le menu -->
         <div class="hidden" id="adm-dash">
-            <p class="adm-empty mb-3" id="adm-updated"></p>
 
-            <div class="row g-3 mb-3">
-                <div class="col-6 col-md-3"><div class="adm-card adm-kpi"><div class="n" id="k-unique">–</div><div class="l">Appareils uniques</div></div></div>
-                <div class="col-6 col-md-3"><div class="adm-card adm-kpi"><div class="n" id="k-visits">–</div><div class="l">Visites totales</div></div></div>
-                <div class="col-6 col-md-3"><div class="adm-card adm-kpi"><div class="n" id="k-today">–</div><div class="l">Nouveaux aujourd'hui</div></div></div>
-                <div class="col-6 col-md-3"><div class="adm-card adm-kpi"><div class="n" id="k-week">–</div><div class="l">Nouveaux sur 7 jours</div></div></div>
-            </div>
-
-            <div class="row g-3 mb-3">
-                <div class="col-md-6"><div class="adm-card"><h2>Répartition par appareil</h2><div id="dev-split"></div></div></div>
-                <div class="col-md-6"><div class="adm-card"><h2>Visites par appareil</h2><div id="dev-visits"></div></div></div>
-            </div>
-
-            <div class="row g-3 mb-3">
-                <div class="col-md-6"><div class="adm-card"><h2>Systèmes</h2><div id="l-systems"></div></div></div>
-                <div class="col-md-6"><div class="adm-card"><h2>Navigateurs</h2><div id="l-browsers"></div></div></div>
-                <div class="col-md-6"><div class="adm-card"><h2>Sources</h2><div id="l-sources"></div></div></div>
-                <div class="col-md-6"><div class="adm-card"><h2>Campagnes</h2><div id="l-campaigns"></div></div></div>
-            </div>
-
-            <div class="adm-card mb-3"><h2>Clics sur les boutons</h2><div id="l-clicks"></div></div>
-
-            <div class="adm-card mb-3">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-                    <h2 class="mb-0"><i class="fa fa-crown me-2 text-primary"></i>Invités inscrits</h2>
-                    <button type="button" class="btn btn-outline-primary border-2 btn-sm px-3" id="g-csv"><i class="fa fa-download me-1"></i>Export CSV</button>
+            <section class="adm-view hidden" data-view="apercu">
+                <div class="row g-3 mb-3">
+                    <div class="col-6 col-md-3"><div class="adm-card adm-kpi"><div class="n" id="k-unique">–</div><div class="l">Appareils uniques</div></div></div>
+                    <div class="col-6 col-md-3"><div class="adm-card adm-kpi"><div class="n" id="k-visits">–</div><div class="l">Visites totales</div></div></div>
+                    <div class="col-6 col-md-3"><div class="adm-card adm-kpi"><div class="n" id="k-today">–</div><div class="l">Nouveaux aujourd'hui</div></div></div>
+                    <div class="col-6 col-md-3"><div class="adm-card adm-kpi"><div class="n" id="k-week">–</div><div class="l">Nouveaux sur 7 jours</div></div></div>
                 </div>
-                <p class="adm-empty" id="g-summary"></p>
-                <input type="search" class="adm-search mb-3" id="g-search" placeholder="Rechercher (prénom, ville, pays…)">
-                <div id="g-table"></div>
-            </div>
+                <div class="adm-card"><h2>Appareils en un coup d'œil</h2><div id="dev-mini"></div></div>
+                <p class="adm-empty mt-3 mb-0" id="adm-updated"></p>
+            </section>
 
-            <div class="adm-card">
-                <h2>Derniers visiteurs</h2>
-                <input type="search" class="adm-search mb-3" id="v-search" placeholder="Rechercher (appareil, système, source, page…)">
-                <div id="v-table"></div>
-            </div>
+            <section class="adm-view hidden" data-view="appareils">
+                <div class="row g-3">
+                    <div class="col-md-6"><div class="adm-card"><h2>Répartition par appareil</h2><div id="dev-split"></div></div></div>
+                    <div class="col-md-6"><div class="adm-card"><h2>Visites par appareil</h2><div id="dev-visits"></div></div></div>
+                </div>
+            </section>
+
+            <section class="adm-view hidden" data-view="sources">
+                <div class="row g-3">
+                    <div class="col-md-6"><div class="adm-card"><h2>Systèmes</h2><div id="l-systems"></div></div></div>
+                    <div class="col-md-6"><div class="adm-card"><h2>Navigateurs</h2><div id="l-browsers"></div></div></div>
+                    <div class="col-md-6"><div class="adm-card"><h2>Sources</h2><div id="l-sources"></div></div></div>
+                    <div class="col-md-6"><div class="adm-card"><h2>Campagnes</h2><div id="l-campaigns"></div></div></div>
+                </div>
+            </section>
+
+            <section class="adm-view hidden" data-view="clics">
+                <div class="adm-card"><h2>Clics sur les boutons</h2><div id="l-clicks"></div></div>
+            </section>
+
+            <section class="adm-view hidden" data-view="invites">
+                <div class="adm-card">
+                    <h2><i class="fa fa-crown me-2 text-primary"></i>Invités inscrits</h2>
+                    <p class="adm-empty" id="g-summary"></p>
+                    <input type="search" class="adm-search mb-3" id="g-search" placeholder="Rechercher (prénom, ville, pays…)">
+                    <div id="g-table"></div>
+                </div>
+            </section>
+
+            <section class="adm-view hidden" data-view="connexions">
+                <div class="adm-card">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                        <h2 class="mb-0"><i class="fa fa-bell me-2 text-primary"></i>Dernières connexions</h2>
+                        <button type="button" class="btn btn-outline-primary border-2 btn-sm px-3" id="v-clear"><i class="fa fa-broom me-1"></i>Tout effacer</button>
+                    </div>
+                    <p class="adm-empty" id="v-summary"></p>
+                    <input type="search" class="adm-search mb-3" id="v-search" placeholder="Rechercher (appareil, système, source, page…)">
+                    <div id="v-table"></div>
+                </div>
+            </section>
         </div>
     </div>
 

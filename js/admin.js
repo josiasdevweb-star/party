@@ -8,6 +8,18 @@
     var timer = null;
     var visitors = [];
     var guests = [];
+    var guestLimit = 10;
+    var visitLimit = 10;
+    var currentView = "apercu";
+
+    var VIEWS = {
+        apercu: "Aperçu",
+        appareils: "Appareils",
+        sources: "Sources",
+        clics: "Clics",
+        invites: "Invités",
+        connexions: "Dernières connexions"
+    };
 
     var DEVICES = [
         { key: "mobile", label: "Téléphone", icon: "fa-mobile-screen", cls: "c-mobile" },
@@ -36,10 +48,12 @@
 
     function nf(n) { return Number(n || 0).toLocaleString("fr-FR"); }
 
-    function deviceLabel(k) {
-        for (var i = 0; i < DEVICES.length; i++) if (DEVICES[i].key === k) return DEVICES[i].label;
-        return k || "–";
+    function deviceOf(k) {
+        for (var i = 0; i < DEVICES.length; i++) if (DEVICES[i].key === k) return DEVICES[i];
+        return DEVICES[1];
     }
+
+    function deviceLabel(k) { return k ? deviceOf(k).label : "–"; }
 
     function message(kind, text) {
         var box = $("adm-state");
@@ -48,13 +62,50 @@
         box.appendChild(el("div", "adm-msg " + kind, text));
     }
 
+    function moreButton(label, onClick) {
+        var b = el("button", "btn btn-outline-primary border-2 btn-sm px-4 adm-more", label);
+        b.type = "button";
+        b.addEventListener("click", onClick);
+        return b;
+    }
+
+    // ---- menu hamburger / navigation ------------------------------------------
+    function toggleMenu(open) {
+        var panel = $("menu-panel");
+        var isOpen = open === undefined ? panel.classList.contains("hidden") : open;
+        panel.classList.toggle("hidden", !isOpen);
+        $("menu-btn").setAttribute("aria-expanded", isOpen ? "true" : "false");
+    }
+
+    function showView(name) {
+        if (!VIEWS[name]) name = "apercu";
+        currentView = name;
+        var views = document.querySelectorAll(".adm-view");
+        for (var i = 0; i < views.length; i++) views[i].classList.toggle("hidden", views[i].getAttribute("data-view") !== name);
+        var items = document.querySelectorAll("[data-nav]");
+        for (var j = 0; j < items.length; j++) items[j].classList.toggle("active", items[j].getAttribute("data-nav") === name);
+        $("adm-view-name").textContent = VIEWS[name];
+        show("adm-view-name", true);
+        toggleMenu(false);
+        window.scrollTo(0, 0);
+    }
+
+    function updateBadges() {
+        var fresh = visitors.filter(function (r) { return !r.dismissed_at; }).length;
+        $("cnt-connexions").textContent = nf(fresh);
+        $("cnt-invites").textContent = nf(guests.length);
+        var badge = $("menu-badge");
+        badge.textContent = fresh > 99 ? "99+" : String(fresh);
+        badge.classList.toggle("hidden", fresh === 0);
+    }
+
     // ---- affichage ------------------------------------------------------------
     function renderList(id, items, withDates) {
         var box = $(id);
         clear(box);
         if (!items.length) { box.appendChild(el("p", "adm-empty mb-0", "Aucune donnée pour le moment.")); return; }
         var max = items[0].count || 1;
-        items.slice(0, 8).forEach(function (it) {
+        items.slice(0, 5).forEach(function (it) {
             var row = el("div", "adm-row");
             var top = el("div", "top");
             top.appendChild(el("span", null, it.name));
@@ -68,6 +119,7 @@
             if (withDates) row.appendChild(el("div", "meta", "Première visite : " + fmtTs(it.first) + " · Dernière : " + fmtTs(it.last)));
             box.appendChild(row);
         });
+        if (items.length > 5) box.appendChild(el("p", "adm-empty mt-2 mb-0", "+ " + (items.length - 5) + " autre(s) non affiché(s)"));
     }
 
     function renderDevices(stats) {
@@ -103,6 +155,25 @@
             row.appendChild(el("div", "nb", nf(stats.byDevice[d.key].visits) + " visites"));
             vis.appendChild(row);
         });
+
+        // version compacte pour l'aperçu
+        var mini = $("dev-mini");
+        clear(mini);
+        var bar2 = el("div", "adm-bar");
+        DEVICES.forEach(function (d) {
+            var seg = el("span", d.cls);
+            seg.style.width = stats.byDevice[d.key].pct + "%";
+            bar2.appendChild(seg);
+        });
+        mini.appendChild(bar2);
+        var line = el("div", "adm-mini");
+        DEVICES.forEach(function (d) {
+            var s = el("span");
+            s.appendChild(el("i", "dot " + d.cls));
+            s.appendChild(document.createTextNode(d.label + " " + stats.byDevice[d.key].pct.toLocaleString("fr-FR") + " %"));
+            line.appendChild(s);
+        });
+        mini.appendChild(line);
     }
 
     function renderClicks(clicks) {
@@ -110,7 +181,7 @@
         clear(box);
         if (!clicks.buttons.length) { box.appendChild(el("p", "adm-empty mb-0", "Aucun clic enregistré pour le moment.")); return; }
         var max = clicks.buttons[0].total || 1;
-        clicks.buttons.forEach(function (b) {
+        clicks.buttons.slice(0, 8).forEach(function (b) {
             var row = el("div", "adm-row");
             var top = el("div", "top");
             top.appendChild(el("span", null, b.name));
@@ -126,41 +197,78 @@
             row.appendChild(split);
             box.appendChild(row);
         });
+        if (clicks.buttons.length > 8) box.appendChild(el("p", "adm-empty mt-2 mb-0", "+ " + (clicks.buttons.length - 8) + " autre(s) bouton(s)"));
     }
 
+    // Notifications : dernières connexions non effacées, la plus récente en premier
     function renderVisitors() {
         var box = $("v-table");
         clear(box);
+        var fresh = visitors.filter(function (r) { return !r.dismissed_at; });
+        $("v-summary").textContent = nf(fresh.length) + " connexion(s) à traiter · effacer une notification ne modifie pas les statistiques";
         var q = $("v-search").value.trim().toLowerCase();
-        var list = visitors.filter(function (r) {
+        var list = fresh.filter(function (r) {
             if (!q) return true;
-            return [fmtDate(r.created_at), deviceLabel(r.device_type), r.operating_system, r.browser, r.utm_source, r.page_path]
+            return [fmtDate(r.last_seen || r.created_at), deviceLabel(r.device_type), r.operating_system, r.browser, r.utm_source, r.page_path]
                 .join(" ").toLowerCase().indexOf(q) >= 0;
-        }).slice(0, 30);
+        }).sort(function (a, b) { return new Date(b.last_seen || b.created_at) - new Date(a.last_seen || a.created_at); });
 
-        if (!list.length) { box.appendChild(el("p", "adm-empty mb-0", q ? "Aucun visiteur ne correspond à cette recherche." : "Aucun visiteur pour le moment.")); return; }
+        if (!list.length) { box.appendChild(el("p", "adm-empty mb-0", q ? "Aucune connexion ne correspond à cette recherche." : "Aucune nouvelle connexion. Tout est à jour.")); return; }
 
-        var table = el("table", "adm-table");
-        var head = el("thead");
-        var hr = el("tr");
-        ["Date", "Appareil", "Système", "Navigateur", "Source", "Page", "Visites"].forEach(function (h) { hr.appendChild(el("th", null, h)); });
-        head.appendChild(hr);
-        table.appendChild(head);
-        var body = el("tbody");
-        list.forEach(function (r) {
-            var tr = el("tr");
-            [
-                ["Date", fmtDate(r.created_at)], ["Appareil", deviceLabel(r.device_type)], ["Système", r.operating_system || "–"],
-                ["Navigateur", r.browser || "–"], ["Source", r.utm_source || "direct"], ["Page", r.page_path || "–"], ["Visites", nf(r.visits_count)]
-            ].forEach(function (c) {
-                var td = el("td", null, c[1]);
-                td.setAttribute("data-label", c[0]);
-                tr.appendChild(td);
-            });
-            body.appendChild(tr);
+        list.slice(0, visitLimit).forEach(function (r) {
+            var d = deviceOf(r.device_type);
+            var row = el("div", "adm-notif");
+            var ic = el("div", "ic " + d.cls);
+            ic.appendChild(el("i", "fa " + d.icon));
+            row.appendChild(ic);
+            var tx = el("div", "tx");
+            tx.appendChild(el("div", "l1", [d.label, r.operating_system || "–", r.browser || "–"].join(" · ")));
+            tx.appendChild(el("div", "l2", [r.utm_source || "direct", r.page_path || "–", nf(r.visits_count) + " visite(s)", fmtDate(r.last_seen || r.created_at)].join(" · ")));
+            row.appendChild(tx);
+            var x = el("button", "adm-x");
+            x.type = "button";
+            x.setAttribute("aria-label", "Effacer cette notification");
+            x.appendChild(el("i", "fa fa-xmark"));
+            x.addEventListener("click", function () { dismissVisitor(r, x); });
+            row.appendChild(x);
+            box.appendChild(row);
         });
-        table.appendChild(body);
-        box.appendChild(table);
+        if (list.length > visitLimit) {
+            box.appendChild(moreButton("Voir plus (" + (list.length - visitLimit) + ")", function () { visitLimit += 10; renderVisitors(); }));
+        }
+    }
+
+    function sqlHint() {
+        return "Action impossible. Vérifiez que la mise à jour SQL « notifications » a bien été exécutée dans Supabase, puis réessayez.";
+    }
+
+    function dismissVisitor(r, btn) {
+        if (!client) return;
+        btn.disabled = true;
+        client.rpc("admin_dismiss_visitor", { p_id: r.id }).then(function (res) {
+            if (res.error) throw res.error;
+            r.dismissed_at = new Date().toISOString();
+            renderVisitors();
+            updateBadges();
+        }).catch(function () {
+            btn.disabled = false;
+            message("err", sqlHint());
+        });
+    }
+
+    function dismissAll() {
+        if (!client) return;
+        var n = visitors.filter(function (r) { return !r.dismissed_at; }).length;
+        if (!n) { message("info", "Aucune notification à effacer."); return; }
+        if (!window.confirm("Effacer les " + n + " notification(s) de connexion ? Les statistiques ne changent pas.")) return;
+        client.rpc("admin_dismiss_all_visitors").then(function (res) {
+            if (res.error) throw res.error;
+            var now = new Date().toISOString();
+            visitors.forEach(function (r) { if (!r.dismissed_at) r.dismissed_at = now; });
+            message("", "");
+            renderVisitors();
+            updateBadges();
+        }).catch(function () { message("err", sqlHint()); });
     }
 
     function renderGuests(g) {
@@ -178,10 +286,11 @@
                 (g.stats.countries.length ? " · pays le plus représenté : " + g.stats.countries[0].name + " (" + nf(g.stats.countries[0].count) + ")" : "");
         }
         var q = $("g-search").value.trim().toLowerCase();
-        var list = guests.filter(function (r) {
+        var all = guests.filter(function (r) {
             if (!q) return true;
             return [r.first_name, r.city, r.country].join(" ").toLowerCase().indexOf(q) >= 0;
-        }).slice(0, 100);
+        });
+        var list = all.slice(0, guestLimit);
         if (!list.length) { box.appendChild(el("p", "adm-empty mb-0", q ? "Aucun invité ne correspond à cette recherche." : "Aucun invité inscrit pour le moment.")); return; }
 
         var table = el("table", "adm-table");
@@ -209,6 +318,9 @@
         });
         table.appendChild(body);
         box.appendChild(table);
+        if (all.length > guestLimit) {
+            box.appendChild(moreButton("Voir plus (" + (all.length - guestLimit) + ")", function () { guestLimit += 10; renderGuests(undefined); }));
+        }
     }
 
     function resetGuest(r, btn) {
@@ -228,8 +340,8 @@
     }
 
     function renderAll(a, c, g) {
-        renderGuests(g);
         visitors = a.rows;
+        renderGuests(g);
         var s = a.stats;
         $("k-unique").textContent = nf(s.uniqueDevices);
         $("k-visits").textContent = nf(s.totalVisits);
@@ -242,6 +354,7 @@
         renderList("l-campaigns", s.campaigns, true);
         renderClicks(c.stats);
         renderVisitors();
+        updateBadges();
         $("adm-updated").textContent = "Dernière actualisation : " + new Date().toLocaleTimeString("fr-FR") +
             " · calculs sur les " + S.LIMIT + " dernières lignes · actualisation automatique toutes les 60 s";
     }
@@ -254,7 +367,7 @@
             message("", "");
             renderAll(res[0], res[1], res[2]);
         }).catch(function () {
-            message("err", "Impossible de charger les statistiques. Vérifiez votre connexion puis cliquez sur « Actualiser ».");
+            message("err", "Impossible de charger les statistiques. Vérifiez votre connexion puis choisissez « Actualiser » dans le menu.");
         });
     }
 
@@ -268,18 +381,22 @@
     // ---- accès ----------------------------------------------------------------
     function showLogin(err) {
         stopAuto();
+        toggleMenu(false);
         show("adm-dash", false);
         show("adm-actions", false);
+        show("adm-view-name", false);
         show("adm-login", true);
         message(err ? "err" : "", err || "");
     }
 
     function showRestricted() {
         stopAuto();
+        toggleMenu(false);
         show("adm-dash", false);
         show("adm-login", false);
+        show("adm-view-name", false);
         show("adm-actions", true);
-        ["btn-refresh", "btn-csv"].forEach(function (id) { $(id).classList.add("hidden"); });
+        $("adm-actions").classList.add("restricted");
         message("err", "Accès restreint. Ce compte n'a pas les droits administrateur.");
     }
 
@@ -287,8 +404,9 @@
         show("adm-login", false);
         show("adm-dash", true);
         show("adm-actions", true);
-        ["btn-refresh", "btn-csv"].forEach(function (id) { $(id).classList.remove("hidden"); });
+        $("adm-actions").classList.remove("restricted");
         message("", "");
+        showView(currentView);
         load();
         startAuto();
     }
@@ -320,6 +438,18 @@
         });
     }
 
+    function download(name, content) {
+        var blob = new Blob([content], { type: "text/csv;charset=utf-8" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = name + "-" + new Date().toISOString().slice(0, 10) + ".csv";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    }
+
     // ---- événements -----------------------------------------------------------
     $("login-form").addEventListener("submit", function (ev) {
         ev.preventDefault();
@@ -341,41 +471,38 @@
         });
     });
 
+    $("menu-btn").addEventListener("click", function (ev) { ev.stopPropagation(); toggleMenu(); });
+    $("menu-panel").addEventListener("click", function (ev) { ev.stopPropagation(); });
+    document.addEventListener("click", function () { toggleMenu(false); });
+    document.addEventListener("keydown", function (ev) { if (ev.key === "Escape") toggleMenu(false); });
+
+    var navItems = document.querySelectorAll("[data-nav]");
+    for (var i = 0; i < navItems.length; i++) {
+        navItems[i].addEventListener("click", function (ev) { showView(ev.currentTarget.getAttribute("data-nav")); });
+    }
+
     $("btn-logout").addEventListener("click", function () {
         if (!client) return;
-        client.auth.signOut().then(function () { visitors = []; showLogin(); });
+        toggleMenu(false);
+        client.auth.signOut().then(function () { visitors = []; guests = []; showLogin(); });
     });
 
-    $("btn-refresh").addEventListener("click", function () { load(); });
+    $("btn-refresh").addEventListener("click", function () { toggleMenu(false); load(); });
 
     $("v-search").addEventListener("input", renderVisitors);
-
+    $("v-clear").addEventListener("click", dismissAll);
     $("g-search").addEventListener("input", function () { renderGuests(undefined); });
 
     $("g-csv").addEventListener("click", function () {
+        toggleMenu(false);
         if (!guests.length) { message("info", "Aucun invité à exporter pour le moment."); return; }
-        var blob = new Blob([S.guestsToCsv(guests)], { type: "text/csv;charset=utf-8" });
-        var url = URL.createObjectURL(blob);
-        var link = document.createElement("a");
-        link.href = url;
-        link.download = "invites-" + new Date().toISOString().slice(0, 10) + ".csv";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        download("invites", S.guestsToCsv(guests));
     });
 
     $("btn-csv").addEventListener("click", function () {
+        toggleMenu(false);
         if (!visitors.length) { message("info", "Aucune donnée à exporter pour le moment."); return; }
-        var blob = new Blob([S.visitorsToCsv(visitors)], { type: "text/csv;charset=utf-8" });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement("a");
-        a.href = url;
-        a.download = "audience-" + new Date().toISOString().slice(0, 10) + ".csv";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        download("audience", S.visitorsToCsv(visitors));
     });
 
     boot();
