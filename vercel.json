@@ -104,6 +104,17 @@
   ],
   "redirects": [
     {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "poseify-psi.vercel.app"
+        }
+      ],
+      "destination": "https://isabella-soiree.vercel.app/$1",
+      "permanent": false
+    },
+    {
       "source": "/((?!blocked.html).*)",
       "has": [
         {
