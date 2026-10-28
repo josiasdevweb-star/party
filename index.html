@@ -182,6 +182,28 @@
     </div>
     <!-- Header End -->
 
+    <!-- Countdown Start -->
+    <section class="countdown" id="countdown" aria-labelledby="cd-titre">
+      <div class="container text-center">
+        <div class="title wow fadeInUp" data-wow-delay="0.1s">
+          <div class="title-center">
+            <h5>Soirée privée</h5>
+            <h1 id="cd-titre">Rendez-vous samedi</h1>
+          </div>
+        </div>
+        <p class="cd-date" id="cd-date"></p>
+        <div class="cd-grid wow fadeInUp" data-wow-delay="0.2s" id="cd-grid" role="timer" aria-label="Temps restant avant la soirée">
+          <div class="cd-box"><span class="cd-num" id="cd-d">00</span><span class="cd-label">Jours</span></div>
+          <div class="cd-box"><span class="cd-num" id="cd-h">00</span><span class="cd-label">Heures</span></div>
+          <div class="cd-box"><span class="cd-num" id="cd-m">00</span><span class="cd-label">Minutes</span></div>
+          <div class="cd-box"><span class="cd-num" id="cd-s">00</span><span class="cd-label">Secondes</span></div>
+        </div>
+        <p class="cd-note" id="cd-note">Une soirée réservée à quelques invités seulement. Chaque seconde compte : préparez-vous.</p>
+        <a class="btn btn-primary py-3 px-5" data-track="countdown_filles" href="#models-grid">Découvrir les filles</a>
+      </div>
+    </section>
+    <!-- Countdown End -->
+
     <!-- About Start -->
     <div class="container-fluid bg-secondary">
       <div class="container">
@@ -276,6 +298,7 @@
     <script src="js/supabase-config.js" defer></script>
     <script src="js/models.js" defer></script>
     <script src="js/main.js" defer></script>
+    <script src="js/countdown.js" defer></script>
     <script src="js/supabase-client.js" defer></script>
     <script src="js/analytics.js" defer></script>
   </body>
