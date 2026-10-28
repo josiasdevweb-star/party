@@ -1,5 +1,7 @@
         (function () {
             var P = window.Poseify;
+            P.ready.then(run);
+            function run() {
             var id = new URLSearchParams(window.location.search).get("id");
             var m = P.findModel(id);
             if (!m) { window.location.replace("index.html"); return; }
@@ -40,18 +42,18 @@
                       '<p class="profil-desc">' + e(m.description) + '</p>' +
                       '<div class="d-flex flex-wrap gap-3">' +
                         '<a class="btn btn-primary btn-reserver" data-track="reserver_modele" href="' + e(m.reservation) + '"><i class="fa fa-heart me-2"></i>Réserver ' + e(m.prenom) + '</a>' +
-                        '<a class="btn btn-outline-primary border-2 py-3 px-4" data-track="voir_galerie" href="#galerie">Voir la galerie</a>' +
+                        (m.photos.length ? '<a class="btn btn-outline-primary border-2 py-3 px-4" data-track="voir_galerie" href="#galerie">Voir la galerie</a>' : '') +
                       '</div>' +
                     '</div>' +
                   '</div></div>' +
                 '</section>' +
-                '<section class="profil-section" id="galerie"><div class="container">' +
+                (m.photos.length ? '<section class="profil-section" id="galerie"><div class="container">' +
                   '<div class="text-center"><div class="title wow fadeInUp"><div class="title-center"><h5>Galerie</h5><h1>Ses photos</h1></div></div></div>' +
                   '<div class="row g-4">' + photos + '</div>' +
-                '</div></section>' +
+                '</div></section>' : '') +
                 '<section class="profil-section"><div class="container">' +
-                  '<div class="text-center"><div class="title wow fadeInUp"><div class="title-center"><h5>En mouvement</h5><h1>Ses vidéos</h1></div></div></div>' +
-                  '<div class="row g-4">' + videos + '</div>' +
+                  (m.videos.length ? '<div class="text-center"><div class="title wow fadeInUp"><div class="title-center"><h5>En mouvement</h5><h1>Ses vidéos</h1></div></div></div>' +
+                  '<div class="row g-4">' + videos + '</div>' : '') +
                   '<div class="profil-cta wow fadeInUp">' +
                     '<h2>Envie de ' + e(m.prenom) + ' ?</h2>' +
                     '<p>Ne la laissez pas filer. Réservez-la dès maintenant.</p>' +
@@ -102,4 +104,5 @@
             });
             overlay.addEventListener("click", function (ev) { if (ev.target === overlay) fermer(); });
             document.addEventListener("keydown", function (ev) { if (ev.key === "Escape") fermer(); });
+            }
         })();

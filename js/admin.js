@@ -18,6 +18,7 @@
         sources: "Sources",
         clics: "Clics",
         invites: "Invités",
+        filles: "Les filles",
         connexions: "Dernières connexions"
     };
 
@@ -88,6 +89,7 @@
         show("adm-view-name", true);
         toggleMenu(false);
         window.scrollTo(0, 0);
+        document.dispatchEvent(new CustomEvent("adm:view", { detail: name }));
     }
 
     function updateBadges() {
@@ -504,6 +506,9 @@
         if (!visitors.length) { message("info", "Aucune donnée à exporter pour le moment."); return; }
         download("audience", S.visitorsToCsv(visitors));
     });
+
+    // Accès pour les modules complémentaires (gestion des filles)
+    window.PoseifyAdmin = { client: function () { return client; }, message: message, el: el, clear: clear };
 
     boot();
 })();

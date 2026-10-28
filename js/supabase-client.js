@@ -40,8 +40,9 @@
                     detectSessionInUrl: false,
                     storageKey: "poseify_auth"
                 },
-                // keepalive : la requête part même si la page change juste après un clic.
-                global: {
+                // keepalive : la requête part même si la page change juste après un clic (suivi public uniquement :
+                // l'espace admin envoie de gros fichiers, incompatibles avec keepalive).
+                global: withSession ? {} : {
                     fetch: function (input, init) {
                         return fetch(input, Object.assign({}, init, { keepalive: true }));
                     }

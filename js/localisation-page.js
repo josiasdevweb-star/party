@@ -1,5 +1,7 @@
 (function () {
     var P = window.Poseify;
+    P.ready.then(run);
+    function run() {
     var id = new URLSearchParams(window.location.search).get("id");
     var m = P.findModel(id);
     if (!m) { window.location.replace("index.html"); return; }
@@ -43,4 +45,5 @@
         if (btn) btn.disabled = true;
         envoyer(prenom, pays, ville).then(function () { window.location.href = cible; });
     });
+    }
 })();

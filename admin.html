@@ -41,6 +41,7 @@
                     <button type="button" class="adm-item needs-admin" data-nav="sources"><i class="fa fa-share-nodes"></i><span>Sources</span></button>
                     <button type="button" class="adm-item needs-admin" data-nav="clics"><i class="fa fa-hand-pointer"></i><span>Clics</span></button>
                     <button type="button" class="adm-item needs-admin" data-nav="invites"><i class="fa fa-crown"></i><span>Invités</span><b class="adm-count" id="cnt-invites">0</b></button>
+                    <button type="button" class="adm-item needs-admin" data-nav="filles"><i class="fa fa-images"></i><span>Les filles</span><b class="adm-count" id="cnt-filles">0</b></button>
                     <button type="button" class="adm-item needs-admin" data-nav="connexions"><i class="fa fa-bell"></i><span>Connexions</span><b class="adm-count" id="cnt-connexions">0</b></button>
                     <div class="adm-sep needs-admin"></div>
                     <button type="button" class="adm-item needs-admin" id="btn-refresh"><i class="fa fa-rotate"></i><span>Actualiser</span></button>
@@ -115,6 +116,20 @@
                 </div>
             </section>
 
+            <section class="adm-view hidden" data-view="filles">
+                <div class="adm-card">
+                    <div id="f-head">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                            <h2 class="mb-0"><i class="fa fa-images me-2 text-primary"></i>Les filles</h2>
+                            <button type="button" class="btn btn-primary btn-sm px-3" id="f-add"><i class="fa fa-plus me-1"></i>Ajouter une fille</button>
+                        </div>
+                        <p class="adm-empty" id="f-summary"></p>
+                    </div>
+                    <div id="f-list"></div>
+                    <div class="hidden" id="f-editor"></div>
+                </div>
+            </section>
+
             <section class="adm-view hidden" data-view="connexions">
                 <div class="adm-card">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
@@ -132,7 +147,9 @@
     <script src="js/supabase-config.js" defer></script>
     <script src="js/supabase-client.js" defer></script>
     <script src="js/analytics-admin-service.js" defer></script>
+    <script src="js/models.js" data-local defer></script>
     <script src="js/admin.js" defer></script>
+    <script src="js/admin-filles.js" defer></script>
 </body>
 
 </html>
