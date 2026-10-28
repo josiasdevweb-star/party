@@ -63,6 +63,7 @@
                         '<span class="profil-chip"><i class="fa fa-location-dot"></i>Vous êtes à : ' + e(loc.ville) + ', ' + e(loc.pays) + '</span>' +
                       '</div>' +
                       '<p class="profil-desc">' + e(m.description) + '</p>' +
+                      '<div class="profil-tarif"><span class="profil-tarif-txt">Un seul tarif pour toute la soirée</span><span class="profil-tarif-prix">99,99&nbsp;€</span></div>' +
                       '<div class="d-flex flex-wrap gap-3">' +
                         '<a class="btn btn-primary btn-reserver" data-track="reserver_modele" href="' + e(m.reservation) + '"' + resa + '><i class="fa fa-heart me-2"></i>Réserver ' + e(m.prenom) + '</a>' +
                         (m.photos.length ? '<a class="btn btn-outline-primary border-2 py-3 px-4" data-track="voir_galerie" href="#galerie">Voir la galerie</a>' : '') +
@@ -80,6 +81,7 @@
                   '<div class="profil-cta wow fadeInUp">' +
                     '<h2>Envie de ' + e(m.prenom) + ' ?</h2>' +
                     '<p>Ne la laissez pas filer. Réservez-la dès maintenant.</p>' +
+                    '<div class="profil-tarif profil-tarif-centre"><span class="profil-tarif-txt">Un seul tarif pour toute la soirée</span><span class="profil-tarif-prix">99,99&nbsp;€</span></div>' +
                     '<a class="btn btn-primary btn-reserver" data-track="reserver_modele" href="' + e(m.reservation) + '"' + resa + '><i class="fa fa-heart me-2"></i>Réserver ' + e(m.prenom) + '</a>' +
                   '</div>' +
                   '<div class="text-center mt-5"><a class="btn btn-outline-primary border-2 px-5 py-3" href="index.html">Retour aux filles</a></div>' +

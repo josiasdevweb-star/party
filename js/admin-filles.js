@@ -246,7 +246,7 @@
             trash: [],
             fields: {}
         };
-        renderEditor(r ? Object.assign({}, r, { reservation: waNumber(r.reservation) }) : { prenom: "", nom: "", categorie: P.categories[0], accroche: "", reservation: "", description: "" });
+        renderEditor(r ? Object.assign({}, r, { reservation: waNumber(r.reservation) || "+" + "33637184457" }) : { prenom: "", nom: "", categorie: P.categories[0], accroche: "", reservation: "+33637184457", description: "" });
     }
 
     function field(labelText, node) {

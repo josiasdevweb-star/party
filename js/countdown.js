@@ -5,7 +5,7 @@
 (function () {
     "use strict";
 
-    var PARTY = "2026-10-31T21:00:00+01:00";   // samedi 31 octobre 2026, 21h00
+    var PARTY = "2026-10-31T10:00:00+01:00";   // samedi 31 octobre 2026, début du programme à 10h00
     var HIDE_AFTER_MS = 24 * 60 * 60 * 1000;   // le bloc disparaît 24 h après le début de la soirée
     var WELCOME_KEY = "poseify_welcome_v1";
 
@@ -27,7 +27,7 @@
             var parts = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Paris" }).formatToParts(d);
             var h = "", m = "";
             parts.forEach(function (p) { if (p.type === "hour") h = p.value; if (p.type === "minute") m = p.value; });
-            return jour.charAt(0).toUpperCase() + jour.slice(1) + " · " + h + "h" + m;
+            return jour.charAt(0).toUpperCase() + jour.slice(1) + " · à partir de " + h + "h" + (m === "00" ? "" : m);
         } catch (e) { return ""; }
     }
 

@@ -35,6 +35,12 @@
         "Une surprise t'attend", "Ose me découvrir", "Je t'ai gardé une place"
     ];
 
+    // Numéro WhatsApp utilisé tant qu'aucun numéro n'est réglé pour une fille.
+    var WA_NUMBER = "33637184457";
+    function waDefault(prenom) {
+        return "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent("Bonjour, je souhaite réserver " + prenom);
+    }
+
     var DEFAULTS = IDENTITES.map(function (ident, i) {
         var n = i + 1;
         var id = (n < 10 ? "0" : "") + n;
@@ -48,7 +54,7 @@
             vignette: "img/team-" + ((i % 8) + 1) + ".jpg",
             photos: [1, 2, 3].map(function (k) { return "img/models/" + id + "/photo-" + k + ".jpg"; }),
             videos: [1, 2].map(function (k) { return "videos/" + id + "/video-" + k + ".mp4"; }),
-            reservation: "#!"
+            reservation: waDefault(ident[1])
         };
     });
 
@@ -86,7 +92,7 @@
                 vignette: vignette,
                 photos: (Array.isArray(r.photos) ? r.photos : []).map(function (u) { return safeUrl(u, ""); }).filter(Boolean).slice(0, 3),
                 videos: (Array.isArray(r.videos) ? r.videos : []).map(function (u) { return safeUrl(u, ""); }).filter(Boolean).slice(0, 2),
-                reservation: safeLink(r.reservation)
+                reservation: (function (l) { return l === "#!" ? waDefault(String(r.prenom || "")) : l; })(safeLink(r.reservation))
             };
         });
     }
