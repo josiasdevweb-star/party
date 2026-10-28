@@ -14,7 +14,8 @@
     var el = A.el;
     var clear = A.clear;
     var BUCKET = "models";
-    var MAX_VIDEO = 50 * 1024 * 1024;
+    var MAX_VIDEO = 500 * 1024 * 1024;
+    var VIDEO_TYPES = { mp4: "video/mp4", m4v: "video/mp4", webm: "video/webm", mov: "video/quicktime", mkv: "video/x-matroska", avi: "video/x-msvideo", wmv: "video/x-ms-wmv", flv: "video/x-flv", "3gp": "video/3gpp", mpg: "video/mpeg", mpeg: "video/mpeg", ogv: "video/ogg", ts: "video/mp2t" };
     var MAX_IMAGE = 25 * 1024 * 1024;
     var rows = [];
     var editor = null;
@@ -43,6 +44,12 @@
         var m = /\.([a-z0-9]{2,5})$/i.exec(file.name || "");
         if (m) return m[1].toLowerCase();
         return file.type === "video/webm" ? "webm" : file.type === "video/mp4" ? "mp4" : file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+    }
+
+    // Type MIME d'une vidéo : celui du navigateur, sinon déduit de l'extension (mkv, avi… sont souvent sans type). Vide si ce n'est pas une vidéo.
+    function videoMime(file) {
+        if (file.type.indexOf("video/") === 0) return file.type;
+        return VIDEO_TYPES[extOf(file)] || "";
     }
 
     function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
@@ -79,7 +86,7 @@
     }
 
     function upload(file, folder, prefix, isImage) {
-        var prep = isImage ? compress(file, prefix === "vignette" ? 1000 : 1600) : Promise.resolve({ blob: file, type: file.type, ext: extOf(file) });
+        var prep = isImage ? compress(file, prefix === "vignette" ? 1000 : 1600) : Promise.resolve({ blob: file, type: videoMime(file) || file.type, ext: extOf(file) });
         return prep.then(function (r) {
             var path = folder + "/" + prefix + "-" + uid() + "." + r.ext;
             var bucket = client().storage.from(BUCKET);
@@ -268,13 +275,13 @@
 
         var file = el("input");
         file.type = "file";
-        file.accept = isVideo ? "video/mp4,video/webm" : "image/jpeg,image/png,image/webp";
+        file.accept = isVideo ? "video/*,.mp4,.m4v,.mov,.mkv,.avi,.wmv,.flv,.3gp,.mpg,.mpeg,.webm,.ogv,.ts" : "image/jpeg,image/png,image/webp";
         file.className = "hidden";
         file.addEventListener("change", function () {
             var f = file.files && file.files[0];
             if (!f) return;
-            if (isVideo ? !/^video\/(mp4|webm)$/.test(f.type) : !/^image\/(jpeg|png|webp)$/.test(f.type)) { A.message("err", isVideo ? "Format vidéo accepté : MP4 ou WebM." : "Format photo accepté : JPG, PNG ou WebP."); return; }
-            if (isVideo && f.size > MAX_VIDEO) { A.message("err", "Cette vidéo dépasse 50 Mo. Compressez-la (par ex. 720p) puis réessayez."); return; }
+            if (isVideo ? !videoMime(f) : !/^image[/](jpeg|png|webp)$/.test(f.type)) { A.message("err", isVideo ? "Ce fichier n'est pas une vidéo reconnue." : "Format photo accepté : JPG, PNG ou WebP."); return; }
+            if (isVideo && f.size > MAX_VIDEO) { A.message("err", "Cette vidéo dépasse 500 Mo."); return; }
             if (!isVideo && f.size > MAX_IMAGE) { A.message("err", "Cette photo dépasse 25 Mo."); return; }
             A.message("", "");
             releasePreview(slot);
@@ -359,7 +366,7 @@
         editor.photos.forEach(function (s, k) { s1.appendChild(slotNode(s, "image", "Photo " + (k + 1))); });
         box.appendChild(s1);
 
-        box.appendChild(el("h3", "adm-sub", "Vidéos (2 maximum, 50 Mo chacune)"));
+        box.appendChild(el("h3", "adm-sub", "Vidéos (2 maximum, tous formats, 500 Mo chacune)"));
         var s2 = el("div", "adm-slots");
         editor.videos.forEach(function (s, k) { s2.appendChild(slotNode(s, "video", "Vidéo " + (k + 1))); });
         box.appendChild(s2);
@@ -462,7 +469,7 @@
             editor.photos.concat(editor.videos).forEach(function (s) { s.newUrl = null; });
             setBusy(false, "");
             var msg = err && err.message ? String(err.message) : "";
-            A.message("err", /size|large|exceed/i.test(msg) ? "Un fichier est trop lourd (50 Mo maximum)." : "Enregistrement impossible. Vérifiez votre connexion et que la mise à jour SQL « filles » a été exécutée, puis réessayez.");
+            A.message("err", /size|large|exceed|payload/i.test(msg) ? "Un fichier dépasse la taille autorisée par votre offre Supabase (Storage > Settings > limite de taille)." : "Enregistrement impossible. Vérifiez votre connexion et que la mise à jour SQL « filles » a été exécutée, puis réessayez.");
             window.scrollTo(0, 0);
         });
     }

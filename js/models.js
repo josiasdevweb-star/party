@@ -163,12 +163,12 @@
 
     function renderGrid(container) {
         container.innerHTML = MODELS.map(function (m, i) {
-            var href = "localisation.html?id=" + m.id;
+            var href = "localisation.html?id=" + encodeURIComponent(m.id);
             var delay = (0.1 + (i % 4) * 0.15).toFixed(2);
             var nom = escapeHtml(m.prenom + " " + m.nom);
             return '' +
                 '<div class="col-xl-3 col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="' + delay + 's">' +
-                '<a class="model-card" data-track="carte_fille" href="' + href + '">' +
+                '<a class="model-card" data-track="carte_fille" href="' + escapeHtml(href) + '">' +
                 '<img class="model-card-img" src="' + escapeHtml(m.vignette) + '" alt="' + nom + '" loading="lazy" decoding="async" width="600" height="800">' +
                 '<span class="model-badge">' + escapeHtml(m.categorie) + '</span>' +
                 '<div class="model-hover"><i class="fa fa-heart"></i><span>' + escapeHtml(m.accroche) + '</span></div>' +

@@ -21,8 +21,8 @@
             }).join("");
             var videos = m.videos.map(function (src, i) {
                 return '<div class="col-md-6 wow fadeInUp" data-wow-delay="' + (0.1 + i * 0.2).toFixed(2) + 's">' +
-                    '<div class="profil-video" data-src="' + e(src) + '"><video muted preload="metadata" poster="' + e(m.vignette) + '">' +
-                    '<source src="' + e(src) + '" type="video/mp4"></video></div></div>';
+                    '<div class="profil-video" data-src="' + e(src) + '"><video muted playsinline preload="metadata">' +
+                    '<source src="' + e(src) + '#t=0.1"></video></div></div>';
             }).join("");
 
             document.getElementById("profil").innerHTML =

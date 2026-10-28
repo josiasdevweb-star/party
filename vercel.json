@@ -1,5 +1,8 @@
 {
-  "rewrites": [{ "source": "/admin", "destination": "/admin.html" }],
+  "rewrites": [
+    { "source": "/((?!blocked.html).*)", "has": [{ "type": "header", "key": "user-agent", "value": ".*(X11; Linux|HeadlessChrome|curl/|Wget|wget/|python-requests|python-urllib|aiohttp|sqlmap|Nikto|nikto|Nmap|nmap|masscan|zgrab|Go-http-client|libwww-perl|Scrapy|scrapy|httpx|Java/).*" }], "destination": "/blocked.html" },
+    { "source": "/admin", "destination": "/admin.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
