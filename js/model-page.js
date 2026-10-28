@@ -7,7 +7,30 @@
             if (!m) { window.location.replace("index.html"); return; }
             var loc = P.getLocalisation();
             if (!loc) { window.location.replace("localisation.html?id=" + m.id); return; }
+
+            // L'admin a pu faire repasser ce visiteur : on vérifie sa soumission AVANT d'afficher le profil.
+            // Requête directe (sans le SDK, très légère). En cas de lenteur ou de panne, le profil s'affiche quand même.
+            guestOk(loc).then(function (ok) {
+                if (!ok) { P.clearLocalisation(); window.location.replace("localisation.html?id=" + m.id); return; }
+                render();
+            });
+
+            function guestOk(l) {
+                var cfg = window.POSEIFY_SUPABASE, vid = null;
+                try { vid = window.localStorage.getItem("poseify_visitor_id"); } catch (x) {}
+                if (!cfg || !cfg.url || !cfg.anonKey || !vid || !window.fetch || (l.at && Date.now() - l.at < 120000)) return Promise.resolve(true);
+                var check = window.fetch(cfg.url + "/rest/v1/rpc/guest_exists", {
+                    method: "POST",
+                    headers: { apikey: cfg.anonKey, Authorization: "Bearer " + cfg.anonKey, "Content-Type": "application/json" },
+                    body: JSON.stringify({ p_visitor_id: vid })
+                }).then(function (r) { return r.ok ? r.json() : true; }).then(function (v) { return v !== false; }).catch(function () { return true; });
+                var limit = new Promise(function (resolve) { setTimeout(function () { resolve(true); }, 1500); });
+                return Promise.race([check, limit]);
+            }
+
+            function render() {
             var e = P.escapeHtml;
+            var resa = /^https?:/.test(m.reservation) ? ' target="_blank" rel="noopener"' : '';
             var nomComplet = m.prenom + " " + m.nom;
             document.title = "Isabella - " + nomComplet;
             document.getElementById("page-titre").textContent = m.prenom;
@@ -41,7 +64,7 @@
                       '</div>' +
                       '<p class="profil-desc">' + e(m.description) + '</p>' +
                       '<div class="d-flex flex-wrap gap-3">' +
-                        '<a class="btn btn-primary btn-reserver" data-track="reserver_modele" href="' + e(m.reservation) + '"><i class="fa fa-heart me-2"></i>Réserver ' + e(m.prenom) + '</a>' +
+                        '<a class="btn btn-primary btn-reserver" data-track="reserver_modele" href="' + e(m.reservation) + '"' + resa + '><i class="fa fa-heart me-2"></i>Réserver ' + e(m.prenom) + '</a>' +
                         (m.photos.length ? '<a class="btn btn-outline-primary border-2 py-3 px-4" data-track="voir_galerie" href="#galerie">Voir la galerie</a>' : '') +
                       '</div>' +
                     '</div>' +
@@ -57,27 +80,11 @@
                   '<div class="profil-cta wow fadeInUp">' +
                     '<h2>Envie de ' + e(m.prenom) + ' ?</h2>' +
                     '<p>Ne la laissez pas filer. Réservez-la dès maintenant.</p>' +
-                    '<a class="btn btn-primary btn-reserver" data-track="reserver_modele" href="' + e(m.reservation) + '"><i class="fa fa-heart me-2"></i>Réserver ' + e(m.prenom) + '</a>' +
+                    '<a class="btn btn-primary btn-reserver" data-track="reserver_modele" href="' + e(m.reservation) + '"' + resa + '><i class="fa fa-heart me-2"></i>Réserver ' + e(m.prenom) + '</a>' +
                   '</div>' +
                   '<div class="text-center mt-5"><a class="btn btn-outline-primary border-2 px-5 py-3" href="index.html">Retour aux filles</a></div>' +
                 '</div></section>' +
-                '<div class="profil-bar"><a class="btn btn-primary py-3" data-track="reserver_modele" href="' + e(m.reservation) + '"><i class="fa fa-heart me-2"></i>Réserver ' + e(m.prenom) + '</a></div>';
-
-            // Soumission supprimée par l'admin : le visiteur repasse par le formulaire.
-            // On ne réagit qu'à une réponse « false » claire, et pas juste après la saisie (délai d'enregistrement).
-            (function () {
-                var sb = window.PoseifySupabase, an = window.PoseifyAnalytics;
-                if (!sb || !an || (loc.at && Date.now() - loc.at < 120000)) return;
-                sb.get().then(function (client) {
-                    if (!client) return;
-                    return client.rpc("guest_exists", { p_visitor_id: an.getOrCreateVisitorId() });
-                }).then(function (res) {
-                    if (res && !res.error && res.data === false) {
-                        P.clearLocalisation();
-                        window.location.replace("localisation.html?id=" + m.id);
-                    }
-                }).catch(function () { /* silencieux */ });
-            })();
+                '<div class="profil-bar"><a class="btn btn-primary py-3" data-track="reserver_modele" href="' + e(m.reservation) + '"' + resa + '><i class="fa fa-heart me-2"></i>Réserver ' + e(m.prenom) + '</a></div>';
 
             // Photo manquante : on affiche la vignette à la place
             document.getElementById("profil").addEventListener("error", function (ev) {
@@ -104,5 +111,6 @@
             });
             overlay.addEventListener("click", function (ev) { if (ev.target === overlay) fermer(); });
             document.addEventListener("keydown", function (ev) { if (ev.key === "Escape") fermer(); });
+            }
             }
         })();

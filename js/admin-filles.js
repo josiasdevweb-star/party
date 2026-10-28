@@ -52,6 +52,21 @@
         return VIDEO_TYPES[extOf(file)] || "";
     }
 
+    // Numéro saisi -> lien WhatsApp. 0612345678 devient 33612345678 ; +33 6 12 34 56 78 et 0033… sont acceptés. Vide -> pas de lien.
+    function waLink(raw, prenom) {
+        var d = String(raw || "").replace(/[^0-9]/g, "");
+        if (!d) return "#!";
+        if (d.indexOf("00") === 0) d = d.slice(2);
+        else if (d.charAt(0) === "0" && d.length === 10) d = "33" + d.slice(1);
+        if (d.length < 8 || d.length > 15) return null;
+        return "https://wa.me/" + d + "?text=" + encodeURIComponent("Bonjour, je souhaite réserver " + prenom);
+    }
+
+    function waNumber(url) {
+        var m = /wa[.]me[/]([0-9]{6,15})/.exec(String(url || ""));
+        return m ? "+" + m[1] : "";
+    }
+
     function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
     // Réduit l'image (côté le plus long = maxSide) et la convertit en JPEG léger. En cas de souci : fichier d'origine.
@@ -231,7 +246,7 @@
             trash: [],
             fields: {}
         };
-        renderEditor(r || { prenom: "", nom: "", categorie: P.categories[0], accroche: "", reservation: "#!", description: "" });
+        renderEditor(r ? Object.assign({}, r, { reservation: waNumber(r.reservation) }) : { prenom: "", nom: "", categorie: P.categories[0], accroche: "", reservation: "", description: "" });
     }
 
     function field(labelText, node) {
@@ -316,7 +331,7 @@
         var f = editor.fields;
         return {
             prenom: f.prenom.value.trim(), nom: f.nom.value.trim(), categorie: f.categorie.value.trim(),
-            accroche: f.accroche.value.trim(), reservation: f.reservation.value.trim() || "#!", description: f.description.value.trim()
+            accroche: f.accroche.value.trim(), reservation: f.reservation.value.trim(), description: f.description.value.trim()
         };
     }
 
@@ -343,7 +358,7 @@
         catWrap.appendChild(dl);
         grid.appendChild(catWrap);
         grid.appendChild(field("Message au survol de la carte", input("accroche", keep.accroche, "Ex. Découvre-moi", 80)));
-        var res = field("Lien du bouton « Réserver »", input("reservation", keep.reservation, "https://…", 500));
+        var res = field("Numéro WhatsApp du bouton « Réserver » (avec l'indicatif, ex. +33637184457)", input("reservation", keep.reservation, "+33637184457", 25));
         res.classList.add("adm-wide");
         grid.appendChild(res);
         var ta = el("textarea", "adm-input");
@@ -412,6 +427,9 @@
         if (busy || !editor || !client()) return;
         var v = readFields();
         if (!v.prenom) { A.message("err", "Le prénom est obligatoire."); return; }
+        var wa = waLink(v.reservation, v.prenom);
+        if (wa === null) { A.message("err", "Numéro WhatsApp invalide : indiquez-le avec l'indicatif pays, par exemple +33637184457."); return; }
+        v.reservation = wa;
         A.message("", "");
 
         var pending = [];
